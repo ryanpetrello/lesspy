@@ -6,23 +6,21 @@ Helps compile collections of .less files into CSS files
 * Saves resulting CSS files to a destination_path, using the same
   directory structure as the source, e.g.,
 
-    ./source
-    |-- shared
-    |   |-- one.less
-    |   `-- two.lss
-    |-- three.less
-    `-- four.css
+        ./source
+        |-- shared
+        |   |-- one.less
+        |   `-- two.lss
+        |-- three.less
+        `-- four.css
 
-...is compiled to...
+    ...is compiled to...
 
-    ./dest
-    |-- shared
-    |   |-- one.css
-    |   `-- two.css
-    |-- three.css
-    `-- four.css
-
----
+        ./dest
+        |-- shared
+        |   |-- one.css
+        |   `-- two.css
+        |-- three.css
+        `-- four.css
 
 LESS
 ----
