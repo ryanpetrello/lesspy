@@ -1,4 +1,9 @@
-import os, re, errno, subprocess
+import os, re, errno, subprocess, logging
+
+__version__ = 0.1
+__all__ = ['__version__', 'Less']
+
+logger = logging.getLogger(__name__)
 
 
 class Less(object):
@@ -44,12 +49,16 @@ class Less(object):
         if self.__mtime__(destination) >= self.__mtime__(source):
             pass # nothing to do!
         else:
-            args = ['lessc', source]
-            if self.compress:
-                args.append('-x')
 
-            p = subprocess.Popen(args, stdout=subprocess.PIPE, shell=False)
-            out, err = p.communicate()
+            if os.path.splitext(source)[1] == '.css':
+                out = open(source, 'r').read()
+            else:
+                args = ['lessc', source]
+                if self.compress:
+                    args.append('-x')
+
+                p = subprocess.Popen(args, stdout=subprocess.PIPE, shell=False)
+                out, err = p.communicate()
 
             try:
                 os.makedirs(os.path.dirname(destination))
