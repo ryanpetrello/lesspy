@@ -6,8 +6,6 @@ Helps compile collections of .less files into CSS files
 * Saves resulting CSS files to a destination_path, using the same
   directory structure as the source, e.g.,
 
----
-
     ./source
     |-- shared
     |   |-- one.less
