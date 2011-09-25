@@ -73,7 +73,7 @@ class Less(object):
         return os.stat(filename).st_mtime
 
     def __to_css__(self, filename):
-        return re.sub('(le?|c)ss$', self.extension, filename, re.I)
+        return re.sub('(le?)ss$', self.extension, filename, re.I)
 
     @property
     def __allfiles__(self):
