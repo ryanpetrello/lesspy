@@ -1,6 +1,6 @@
 lesspy
 ======
-Helps compile collections of .less files into CSS files
+Helps compile collections of LESS files into CSS files
 
 * Given a source directory, recursively finds LESS (.less/.lss) files
 * Saves resulting CSS files to a destination_path, using the same
