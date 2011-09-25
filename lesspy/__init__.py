@@ -1,9 +1,7 @@
-import os, re, errno, subprocess, logging
+import os, re, errno, subprocess
 
 __version__ = 0.1
 __all__ = ['__version__', 'Less']
-
-logger = logging.getLogger(__name__)
 
 
 class Less(object):
@@ -51,8 +49,10 @@ class Less(object):
         else:
 
             if os.path.splitext(source)[1] == '.css':
+                print 'Copying %s to %s' % (source, destination)
                 out = open(source, 'r').read()
             else:
+                print 'Compiling %s to %s' % (source, destination)
                 args = ['lessc', source]
                 if self.compress:
                     args.append('-x')
@@ -77,6 +77,7 @@ class Less(object):
 
     @property
     def __allfiles__(self):
+        print 'Searching for uncompiled LESS files...'
         matches = []
         for root, dirnames, filenames in os.walk(self.source_path):
           for filename in [f for f in filenames if f.endswith(('.less', '.lss', '.css'))]:
