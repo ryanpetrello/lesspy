@@ -7,7 +7,7 @@ __all__ = ['__version__', 'Less']
 class Less(object):
 
     def __init__(self, source_path, destination_path, compress=True,
-            extension='less.css'):
+            extension='css'):
         """
         Used to automatically parse .less files through lessc and output CSS.
 
@@ -18,7 +18,7 @@ class Less(object):
         If ``compress`` is True, compiled resources will also be minified.
 
         ``extension`` is the file extension used for outputted files, e.g.,
-        by default, ``style.less`` becomes ``style.less.css``.
+        by default, ``style.less`` becomes ``style.css``.
 
         Usage:
         Less('/path/to/less/files', '/path/to/compiled').compile()
@@ -28,14 +28,15 @@ class Less(object):
         self.compress = compress
         self.extension = extension
 
-    def compile(self, files=[]):
+    def compile(self, files=None):
         """
         Used to compile a collection of relative (or absolute) filenames.
 
-        When ``files`` is None or [], all ``source_path`` will be recursively
+        When ``files`` is None or empty, ``source_path`` will be recursively
         walked and searched for .less, .lss, and .css files to compile.
         """
-        files = files or self.__allfiles__
+        if files is None:
+            files = self.__allfiles__
         if isinstance(files, list):
             for f in files:
                 self.__compile_one__(
