@@ -34,19 +34,23 @@ class Less(object):
 
         When ``files`` is None or empty, ``source_path`` will be recursively
         walked and searched for .less, .lss, and .css files to compile.
+
+        Returns a list of absolute pathnames of written files.
         """
+        written = []
         if files is None:
             files = self.__allfiles__
         if isinstance(files, list):
             for f in files:
-                self.__compile_one__(
+                written.append(self.__compile_one__(
                     os.path.join(self.source_path, f),
                     self.__to_css__(os.path.join(self.destination_path, f))
-                )
+                ))
+        return filter(None, written)
 
     def __compile_one__(self, source, destination):
         if self.__mtime__(destination) >= self.__mtime__(source):
-            pass # nothing to do!
+            pass # nothing changed!
         else:
 
             if os.path.splitext(source)[1] == '.css':
@@ -64,10 +68,11 @@ class Less(object):
             try:
                 os.makedirs(os.path.dirname(destination))
             except OSError, e:
-                if e.errno != errno.EEXIST:
+                if e.errno != errno.EEXIST: #pragma: no cover
                     raise
 
             open(destination, 'w').write(out)
+            return destination
 
     def __mtime__(self, filename):
         if not os.path.isfile(filename): return 0

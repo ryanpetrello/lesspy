@@ -21,6 +21,7 @@ setup(
     author = 'Ryan Petrello',
     author_email = 'ryan (at) ryanpetrello.com',
     install_requires = [],
+    test_suite='lesspy.tests.suite',
     zip_safe = False,
     packages = find_packages(exclude=['ez_setup'])
 )

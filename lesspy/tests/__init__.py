@@ -1,13 +1,16 @@
 from lesspy     import Less
-from unittest   import TestCase
 
 import os
 import shutil
 import errno
+import platform
 import tempfile
+import unittest
+
+__all__ = ['suite' ,'TestLess']
 
 
-class TestLess(TestCase):
+class TestLess(unittest.TestCase):
 
     root = tempfile.gettempdir()
 
@@ -23,7 +26,7 @@ class TestLess(TestCase):
         try:
             os.makedirs(self.source)
             os.makedirs(self.destination)
-        except OSError, e:
+        except OSError, e: # pragma: no cover
             if e.errno != errno.EEXIST:
                 raise
 
@@ -49,15 +52,10 @@ class TestLess(TestCase):
             os.makedirs(dirname)
         except OSError, e:
             if e.errno != errno.EEXIST:
-                raise
+                raise #pragma: no cover
 
         open(filename, 'w').write(value)
 
-    @property
-    def written_files(self):
-        return sum([[os.path.join(r,f) for f in files]
-                for r, d, files in os.walk(self.destination)], [])
-    
     def test_path_init(self):
         l = Less(self.source, self.destination)
         assert l.source_path == self.source
@@ -84,13 +82,13 @@ class TestLess(TestCase):
         assert value == self.LESS
 
     def test_compile_no_files(self):
-        Less(self.source, self.destination).compile([])
-        assert self.written_files == []
+        written_files = Less(self.source, self.destination).compile([])
+        assert written_files == []
 
     def test_compile_single_less_file(self):
         self.write('style.less', self.LESS)
-        Less(self.source, self.destination).compile(['style.less'])
-        assert self.written_files == [
+        written_files = Less(self.source, self.destination).compile(['style.less'])
+        assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]
         val = open(os.path.join(self.destination, 'style.css'), 'r').read()
@@ -98,8 +96,8 @@ class TestLess(TestCase):
 
     def test_compile_single_lss_file(self):
         self.write('style.lss', self.LESS)
-        Less(self.source, self.destination).compile(['style.lss'])
-        assert self.written_files == [
+        written_files = Less(self.source, self.destination).compile(['style.lss'])
+        assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]
         val = open(os.path.join(self.destination, 'style.css'), 'r').read()
@@ -107,9 +105,79 @@ class TestLess(TestCase):
 
     def test_compile_single_css_file(self):
         self.write('raw.css', self.COMPILED)
-        Less(self.source, self.destination).compile(['raw.css'])
-        assert self.written_files == [
+        written_files = Less(self.source, self.destination).compile(['raw.css'])
+        assert written_files == [
             os.path.join(self.destination, 'raw.css') 
         ]
         val = open(os.path.join(self.destination, 'raw.css'), 'r').read()
         assert val.strip() == self.COMPILED.strip()
+
+    def test_multiple_files(self):
+        self.write('one.less', self.LESS)
+        self.write('two.lss', self.LESS)
+        self.write('raw.css', self.COMPILED)
+        written_files = Less(self.source, self.destination).compile([
+            'one.less', 'two.lss', 'raw.css'
+        ])
+        assert os.path.join(self.destination, 'one.css') in written_files
+        assert os.path.join(self.destination, 'two.css') in written_files
+        assert os.path.join(self.destination, 'raw.css') in written_files
+
+        val = open(os.path.join(self.destination, 'one.css'), 'r').read()
+        assert val.strip() == self.COMPILED.strip()
+
+        val = open(os.path.join(self.destination, 'two.css'), 'r').read()
+        assert val.strip() == self.COMPILED.strip()
+
+        val = open(os.path.join(self.destination, 'raw.css'), 'r').read()
+        assert val.strip() == self.COMPILED.strip()
+
+    def test_autodiscover(self):
+        self.write('root.less', self.LESS)
+        self.write('raw.css', self.COMPILED)
+        self.write('sub/sub.less', self.LESS)
+        self.write('sub/sub/sub.lss', self.LESS)
+        self.write('sub/sub/sub/raw.css', self.COMPILED)
+        written_files = Less(self.source, self.destination).compile()
+
+        for fname in (
+            'root.css', 
+            'raw.css', 
+            'sub/sub.css',
+            'sub/sub/sub.css',
+            'sub/sub/sub/raw.css'
+        ):
+            assert os.path.join(self.destination, fname) in written_files
+            val = open(os.path.join(self.destination, fname), 'r').read()
+            assert val.strip() == self.COMPILED.strip()
+
+    def test_mtime_change(self):
+        self.write('style.less', self.LESS)
+        written_files = Less(self.source, self.destination).compile(['style.less'])
+        assert written_files == [
+            os.path.join(self.destination, 'style.css') 
+        ]
+        val = open(os.path.join(self.destination, 'style.css'), 'r').read()
+        assert val.strip() == self.COMPILED.strip()
+
+        #
+        # The mtimes of the compiled files haven't changed, so no new files
+        # should have been written.
+        #
+        written_files = Less(self.source, self.destination).compile(['style.less'])
+        assert written_files == []
+
+        # Touch a source file
+        fname = os.path.join(self.source, 'style.less')
+        with file(fname, 'a'):
+            st = os.stat(fname)
+            os.utime(fname, (st.st_atime, st.st_mtime + (5)))
+            if platform.system() == 'Windows': # pragma: no cover
+                time.sleep(3) # give (ahem) certain OS's a chance to catch up
+
+        written_files = Less(self.source, self.destination).compile(['style.less'])
+        assert written_files == [
+            os.path.join(self.destination, 'style.css') 
+        ]
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestLess)
