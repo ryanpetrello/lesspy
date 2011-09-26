@@ -44,7 +44,7 @@ class Less(object):
     CSS_RE = re.compile('(le?|c)ss$', re.I)
 
     def __init__(self, source_path, destination_path, compress=True,
-            compiled_extension='css', less_path='.'):
+            compiled_extension='css', less_path=''):
         self.source_path = os.path.abspath(source_path)
         self.destination_path = os.path.abspath(destination_path)
         self.compress = compress
@@ -62,6 +62,7 @@ class Less(object):
         Returns a list of absolute pathnames of written files, e.g.,
         ``['/compiled/path/style.css', '/compiled/path/example.css']``
         """
+        written = []
         files = files or self.__allfiles__
         if isinstance(files, list):
             for f in files:

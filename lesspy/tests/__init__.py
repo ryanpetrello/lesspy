@@ -82,10 +82,6 @@ class TestLess(unittest.TestCase):
         value = open(os.path.join(self.source, 'foo/style.less'), 'r').read()
         assert value == self.LESS
 
-    def test_compile_no_files(self):
-        written_files = Less(self.source, self.destination).compile([])
-        assert written_files == []
-
     def test_compile_single_less_file(self):
         self.write('style.less', self.LESS)
         written_files = Less(self.source, self.destination).compile([
