@@ -99,15 +99,20 @@ class TestLess(unittest.TestCase):
 
     def test_compile_extension(self):
         self.write('style.less', self.LESS)
+        self.write('raw.css', self.COMPRESSED)
         written_files = Less(
             self.source, 
             self.destination, 
-            extension='min.css'
-        ).compile(['style.less'])
-        assert written_files == [
-            os.path.join(self.destination, 'style.min.css') 
-        ]
+            compiled_extension='min.css'
+        ).compile(['style.less', 'raw.css'])
+
+        assert os.path.join(self.destination, 'style.min.css') in written_files
+        assert os.path.join(self.destination, 'raw.css') in written_files
+
         val = open(os.path.join(self.destination, 'style.min.css'), 'r').read()
+        assert val.strip() == self.COMPRESSED.strip()
+
+        val = open(os.path.join(self.destination, 'raw.css'), 'r').read()
         assert val.strip() == self.COMPRESSED.strip()
 
     def test_compile_without_compression(self):
@@ -180,7 +185,7 @@ class TestLess(unittest.TestCase):
             'raw.css', 
             'sub/sub.css',
             'sub/sub/sub.css',
-            'sub/sub/sub/raw.css'
+            'sub/sub/sub/raw.CSS'
         ):
             assert os.path.join(self.destination, fname) in written_files
             val = open(os.path.join(self.destination, fname), 'r').read()

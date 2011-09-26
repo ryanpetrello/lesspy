@@ -28,7 +28,7 @@ class Less(object):
     CSS_RE = re.compile('(le?|c)ss$', re.I)
 
     def __init__(self, source_path, destination_path, compress=True,
-            extension='css', less_path=''):
+            compiled_extension='css', less_path=''):
         """
         Used to automatically parse .less files through lessc and output CSS.
 
@@ -38,8 +38,8 @@ class Less(object):
 
         If ``compress`` is True, compiled resources will also be minified.
 
-        ``extension`` is the file extension used for outputted files, e.g.,
-        by default, ``style.less`` becomes ``style.css``.
+        ``compiled_extension`` is the file extension used for compiled files,
+        e.g., by default, ``style.less`` becomes ``style.css``.
 
         By default, the ``lessc`` executable will be searched for on the system
         path.  Optionally, ``less_path`` can be used to specify an absolute
@@ -51,7 +51,7 @@ class Less(object):
         self.source_path = os.path.abspath(source_path)
         self.destination_path = os.path.abspath(destination_path)
         self.compress = compress
-        self.extension = extension
+        self.compiled_extension = compiled_extension
         self.lessc = os.path.join(less_path, 'lessc')
 
     def compile(self, files=None):
@@ -70,20 +70,20 @@ class Less(object):
             for f in files:
                 written.append(self.__compile_one__(
                     os.path.join(self.source_path, f),
-                    self.__to_css__(os.path.join(self.destination_path, f))
+                    os.path.join(self.destination_path, f)
                 ))
         return filter(None, written)
 
     def __compile_one__(self, source, destination):
-        if self.__mtime__(destination) >= self.__mtime__(source):
+        compiled_destination = self.__to_css__(destination)
+        if self.__mtime__(compiled_destination) >= self.__mtime__(source):
             pass # nothing changed!
         else:
-
             if os.path.splitext(source)[1].lower() == '.css':
                 print 'Copying %s to %s' % (source, destination)
                 out = open(source, 'r').read()
             else:
-
+                destination = compiled_destination
                 #
                 # First, attempt to call lessc without arguments (to ensure
                 # that it exists and is executable on the path somewhere)
@@ -113,7 +113,7 @@ class Less(object):
         return os.stat(filename).st_mtime
 
     def __to_css__(self, filename):
-        return self.CSS_RE.sub(self.extension, filename)
+        return self.CSS_RE.sub(self.compiled_extension, filename)
 
     @property
     def __allfiles__(self):
