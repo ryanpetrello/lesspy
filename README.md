@@ -24,9 +24,10 @@ Helps compile collections of LESS files into CSS files
 
 LESS
 ----
-lesspy depends on LESS.
+lesspy depends on LESS (http://lesscss.org/).
 
-LESS extends CSS with: variables, mixins, operations and nested rules. For more information, see http://lesscss.org.
+LESS extends CSS with dynamic behavior such as variables, mixins, operations
+and functions.
 
 Usage
 -----
