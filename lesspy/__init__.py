@@ -3,11 +3,30 @@ import os, re, errno, subprocess
 __version__ = 0.1
 __all__ = ['__version__', 'Less']
 
+__LESS_MISSING__ = "`lessc` could not found on the system path.  Please \
+ensure that you've properly installed the LESS compiler (http://lesscss.org/)."
+
+def _executable(less):
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(less)
+    if fpath:
+        if is_exe(less):
+            return True
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, less)
+            if is_exe(exe_file):
+                return True
+
+    return False
+
 
 class Less(object):
 
     def __init__(self, source_path, destination_path, compress=True,
-            extension='css'):
+            extension='css', less_path=''):
         """
         Used to automatically parse .less files through lessc and output CSS.
 
@@ -20,6 +39,10 @@ class Less(object):
         ``extension`` is the file extension used for outputted files, e.g.,
         by default, ``style.less`` becomes ``style.css``.
 
+        By default, the ``lessc`` executable will be searched for on the system
+        path.  Optionally, ``less_path`` can be used to specify an absolute
+        path to the ``lessc`` executable, e.g., "/some/path/to/less"
+
         Usage:
         Less('/path/to/less/files', '/path/to/compiled').compile()
         """
@@ -27,6 +50,7 @@ class Less(object):
         self.destination_path = os.path.abspath(destination_path)
         self.compress = compress
         self.extension = extension
+        self.lessc = os.path.join(less_path, 'lessc')
 
     def compile(self, files=None):
         """
@@ -57,12 +81,20 @@ class Less(object):
                 print 'Copying %s to %s' % (source, destination)
                 out = open(source, 'r').read()
             else:
+
+                #
+                # First, attempt to call lessc without arguments (to ensure
+                # that it exists and is executable on the path somewhere)
+                #
+                if not _executable(self.lessc):
+                    raise RuntimeError, __LESS_MISSING__
+
                 print 'Compiling %s to %s' % (source, destination)
-                args = ['lessc', source]
+                args = [self.lessc, source]
                 if self.compress:
                     args.append('-x')
 
-                p = subprocess.Popen(args, stdout=subprocess.PIPE, shell=False)
+                p = subprocess.Popen(args, stdout=subprocess.PIPE)
                 out, err = p.communicate()
 
             try:
