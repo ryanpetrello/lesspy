@@ -32,8 +32,8 @@ class Less(object):
         """
         Used to automatically parse .less files through lessc and output CSS.
 
-        * Recursively looks for LESS (.less/lss) files in ``source_path``
-        * Saves resulting CSS files to ``destination_path``, using the same
+        * Recursively looks for LESS (.less/.lss/.css) files in ``source_path``
+        * Saves compiled CSS files to ``destination_path``, using the same
           directory structure as the source.
 
         If ``compress`` is True, compiled resources will also be minified.
