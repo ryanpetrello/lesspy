@@ -15,7 +15,8 @@ class TestLess(unittest.TestCase):
     root = tempfile.gettempdir()
 
     LESS = 'p { color: black; &.red { color: red; } }'
-    COMPILED = 'p{color:black;}p.red{color:red;}'
+    UNCOMPRESSED = 'p {\n  color: black;\n}\np.red {\n  color: red;\n}'
+    COMPRESSED = 'p{color:black;}p.red{color:red;}'
 
     def setUp(self):
         super(TestLess, self).setUp()
@@ -87,35 +88,69 @@ class TestLess(unittest.TestCase):
 
     def test_compile_single_less_file(self):
         self.write('style.less', self.LESS)
-        written_files = Less(self.source, self.destination).compile(['style.less'])
+        written_files = Less(self.source, self.destination).compile([
+            'style.less'
+        ])
         assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]
         val = open(os.path.join(self.destination, 'style.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
+
+    def test_compile_extension(self):
+        self.write('style.less', self.LESS)
+        written_files = Less(
+            self.source, 
+            self.destination, 
+            extension='min.css'
+        ).compile(['style.less'])
+        assert written_files == [
+            os.path.join(self.destination, 'style.min.css') 
+        ]
+        val = open(os.path.join(self.destination, 'style.min.css'), 'r').read()
+        assert val.strip() == self.COMPRESSED.strip()
+
+    def test_compile_without_compression(self):
+        self.write('style.less', self.LESS)
+        written_files = Less(
+            self.source, 
+            self.destination, 
+            compress=False
+        ).compile([
+            'style.less'
+        ])
+        assert written_files == [
+            os.path.join(self.destination, 'style.css') 
+        ]
+        val = open(os.path.join(self.destination, 'style.css'), 'r').read()
+        assert val.strip() == self.UNCOMPRESSED.strip()
 
     def test_compile_single_lss_file(self):
         self.write('style.lss', self.LESS)
-        written_files = Less(self.source, self.destination).compile(['style.lss'])
+        written_files = Less(self.source, self.destination).compile([
+            'style.lss'
+        ])
         assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]
         val = open(os.path.join(self.destination, 'style.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
     def test_compile_single_css_file(self):
-        self.write('raw.css', self.COMPILED)
-        written_files = Less(self.source, self.destination).compile(['raw.css'])
+        self.write('raw.css', self.COMPRESSED)
+        written_files = Less(self.source, self.destination).compile([
+            'raw.css'
+        ])
         assert written_files == [
             os.path.join(self.destination, 'raw.css') 
         ]
         val = open(os.path.join(self.destination, 'raw.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
     def test_multiple_files(self):
         self.write('one.less', self.LESS)
         self.write('two.lss', self.LESS)
-        self.write('raw.css', self.COMPILED)
+        self.write('raw.css', self.COMPRESSED)
         written_files = Less(self.source, self.destination).compile([
             'one.less', 'two.lss', 'raw.css'
         ])
@@ -124,20 +159,20 @@ class TestLess(unittest.TestCase):
         assert os.path.join(self.destination, 'raw.css') in written_files
 
         val = open(os.path.join(self.destination, 'one.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
         val = open(os.path.join(self.destination, 'two.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
         val = open(os.path.join(self.destination, 'raw.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
     def test_autodiscover(self):
         self.write('root.less', self.LESS)
-        self.write('raw.css', self.COMPILED)
-        self.write('sub/sub.less', self.LESS)
+        self.write('raw.css', self.COMPRESSED)
+        self.write('sub/sub.LESS', self.LESS)
         self.write('sub/sub/sub.lss', self.LESS)
-        self.write('sub/sub/sub/raw.css', self.COMPILED)
+        self.write('sub/sub/sub/raw.CSS', self.COMPRESSED)
         written_files = Less(self.source, self.destination).compile()
 
         for fname in (
@@ -149,22 +184,26 @@ class TestLess(unittest.TestCase):
         ):
             assert os.path.join(self.destination, fname) in written_files
             val = open(os.path.join(self.destination, fname), 'r').read()
-            assert val.strip() == self.COMPILED.strip()
+            assert val.strip() == self.COMPRESSED.strip()
 
     def test_mtime_change(self):
         self.write('style.less', self.LESS)
-        written_files = Less(self.source, self.destination).compile(['style.less'])
+        written_files = Less(self.source, self.destination).compile([
+            'style.less'
+        ])
         assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]
         val = open(os.path.join(self.destination, 'style.css'), 'r').read()
-        assert val.strip() == self.COMPILED.strip()
+        assert val.strip() == self.COMPRESSED.strip()
 
         #
         # The mtimes of the compiled files haven't changed, so no new files
         # should have been written.
         #
-        written_files = Less(self.source, self.destination).compile(['style.less'])
+        written_files = Less(self.source, self.destination).compile([
+            'style.less'
+        ])
         assert written_files == []
 
         # Touch a source file
@@ -175,7 +214,9 @@ class TestLess(unittest.TestCase):
             if platform.system() == 'Windows': # pragma: no cover
                 time.sleep(3) # give (ahem) certain OS's a chance to catch up
 
-        written_files = Less(self.source, self.destination).compile(['style.less'])
+        written_files = Less(self.source, self.destination).compile([
+            'style.less'
+        ])
         assert written_files == [
             os.path.join(self.destination, 'style.css') 
         ]

@@ -25,6 +25,8 @@ def _executable(less): #pragma: no cover
 
 class Less(object):
 
+    CSS_RE = re.compile('(le?|c)ss$', re.I)
+
     def __init__(self, source_path, destination_path, compress=True,
             extension='css', less_path=''):
         """
@@ -77,7 +79,7 @@ class Less(object):
             pass # nothing changed!
         else:
 
-            if os.path.splitext(source)[1] == '.css':
+            if os.path.splitext(source)[1].lower() == '.css':
                 print 'Copying %s to %s' % (source, destination)
                 out = open(source, 'r').read()
             else:
@@ -111,14 +113,14 @@ class Less(object):
         return os.stat(filename).st_mtime
 
     def __to_css__(self, filename):
-        return re.sub('(le?)ss$', self.extension, filename, re.I)
+        return self.CSS_RE.sub(self.extension, filename)
 
     @property
     def __allfiles__(self):
         print 'Searching for uncompiled LESS files...'
         matches = []
         for root, dirnames, filenames in os.walk(self.source_path):
-          for filename in [f for f in filenames if f.endswith(('.less', '.lss', '.css'))]:
+          for filename in [f for f in filenames if f.lower().endswith(('.less', '.lss', '.css'))]:
               matches.append(
                 os.path.join(root, filename).replace(self.source_path+'/', '', 1)
               )
