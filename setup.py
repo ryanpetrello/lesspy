@@ -15,8 +15,8 @@ setup(
     Helps compile collections of LESS files into CSS files
 
     * Given a source directory, recursively finds LESS (.less/lss/.css) files
-    * Saves compiled CSS files to ``destination_path``, using the same
-      directory structure as the source.
+    * Saves compiled CSS files to a destination path, using the same directory
+      structure as the source.
     """,
     author = 'Ryan Petrello',
     author_email = 'ryan (at) ryanpetrello.com',

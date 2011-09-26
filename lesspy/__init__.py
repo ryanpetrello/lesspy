@@ -24,48 +24,45 @@ def _executable(less): #pragma: no cover
 
 
 class Less(object):
+    """
+    Used to automatically parse LESS files through ``lessc`` and output CSS.
+
+    * Recursively looks for LESS (.less/.lss/.css) files in ``source_path``
+    * Saves compiled CSS files to ``destination_path``, using the same
+      directory structure as the source.
+
+    If ``compress`` is True, compiled resources will also be minified.
+
+    ``compiled_extension`` is the file extension used for compiled files,
+    e.g., by default, ``style.less`` becomes ``style.css``.
+
+    By default, the ``lessc`` executable will be searched for on the system
+    path.  Optionally, ``less_path`` can be used to specify an absolute
+    path to the ``lessc`` executable, e.g., ``"/some/path/to/less"``
+    """
 
     CSS_RE = re.compile('(le?|c)ss$', re.I)
 
     def __init__(self, source_path, destination_path, compress=True,
-            compiled_extension='css', less_path=''):
-        """
-        Used to automatically parse .less files through lessc and output CSS.
-
-        * Recursively looks for LESS (.less/.lss/.css) files in ``source_path``
-        * Saves compiled CSS files to ``destination_path``, using the same
-          directory structure as the source.
-
-        If ``compress`` is True, compiled resources will also be minified.
-
-        ``compiled_extension`` is the file extension used for compiled files,
-        e.g., by default, ``style.less`` becomes ``style.css``.
-
-        By default, the ``lessc`` executable will be searched for on the system
-        path.  Optionally, ``less_path`` can be used to specify an absolute
-        path to the ``lessc`` executable, e.g., "/some/path/to/less"
-
-        Usage:
-        Less('/path/to/less/files', '/path/to/compiled').compile()
-        """
+            compiled_extension='css', less_path='.'):
         self.source_path = os.path.abspath(source_path)
         self.destination_path = os.path.abspath(destination_path)
         self.compress = compress
         self.compiled_extension = compiled_extension
         self.lessc = os.path.join(less_path, 'lessc')
 
-    def compile(self, files=None):
+    def compile(self, files=[]):
         """
-        Used to compile a collection of relative (or absolute) filenames.
+        Compile a list of relative (or absolute) filenames.
 
-        When ``files`` is None or empty, ``source_path`` will be recursively
-        walked and searched for .less, .lss, and .css files to compile.
+        When ``files`` is None or empty, ``Less.source_path`` will be
+        recursively walked and searched for .less, .lss, and .css files to
+        compile.
 
-        Returns a list of absolute pathnames of written files.
+        Returns a list of absolute pathnames of written files, e.g.,
+        ``['/compiled/path/style.css', '/compiled/path/example.css']``
         """
-        written = []
-        if files is None:
-            files = self.__allfiles__
+        files = files or self.__allfiles__
         if isinstance(files, list):
             for f in files:
                 written.append(self.__compile_one__(
