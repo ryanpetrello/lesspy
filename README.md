@@ -41,3 +41,7 @@ Usage
 
     # Auto-detect .less files and convert them to .css
     lesspy.Less('/path/to/less/files', '/path/to/compiled').compile()
+
+CSS minification is enabled by default, but can be disabled optionally:
+
+    lesspy.Less('/from', '/to', compress=False).compile()
