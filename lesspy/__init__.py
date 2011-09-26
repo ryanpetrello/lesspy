@@ -73,38 +73,38 @@ class Less(object):
         return filter(None, written)
 
     def __compile_one__(self, source, destination):
-        compiled_destination = self.__to_css__(destination)
-        if self.__mtime__(compiled_destination) >= self.__mtime__(source):
-            pass # nothing changed!
+        if os.path.splitext(source)[1].lower() == '.css':
+            if self.__mtime__(destination) >= self.__mtime__(source):
+                return
+            print 'Copying %s to %s' % (source, destination)
+            out = open(source, 'r').read()
         else:
-            if os.path.splitext(source)[1].lower() == '.css':
-                print 'Copying %s to %s' % (source, destination)
-                out = open(source, 'r').read()
-            else:
-                destination = compiled_destination
-                #
-                # First, attempt to call lessc without arguments (to ensure
-                # that it exists and is executable on the path somewhere)
-                #
-                if not _executable(self.lessc):
-                    raise RuntimeError, __LESS_MISSING__ #pragma: no cover
+            destination = self.__to_css__(destination)
+            if self.__mtime__(destination) >= self.__mtime__(source):
+                return
+            #
+            # First, attempt to call lessc without arguments (to ensure
+            # that it exists and is executable on the path somewhere)
+            #
+            if not _executable(self.lessc):
+                raise RuntimeError, __LESS_MISSING__ #pragma: no cover
 
-                print 'Compiling %s to %s' % (source, destination)
-                args = [self.lessc, source]
-                if self.compress:
-                    args.append('-x')
+            print 'Compiling %s to %s' % (source, destination)
+            args = [self.lessc, source]
+            if self.compress:
+                args.append('-x')
 
-                p = subprocess.Popen(args, stdout=subprocess.PIPE)
-                out, err = p.communicate()
+            p = subprocess.Popen(args, stdout=subprocess.PIPE)
+            out, err = p.communicate()
 
-            try:
-                os.makedirs(os.path.dirname(destination))
-            except OSError, e:
-                if e.errno != errno.EEXIST: #pragma: no cover
-                    raise
+        try:
+            os.makedirs(os.path.dirname(destination))
+        except OSError, e:
+            if e.errno != errno.EEXIST: #pragma: no cover
+                raise
 
-            open(destination, 'w').write(out)
-            return destination
+        open(destination, 'w').write(out)
+        return destination
 
     def __mtime__(self, filename):
         if not os.path.isfile(filename): return 0
