@@ -6,7 +6,7 @@ __all__ = ['__version__', 'Less']
 __LESS_MISSING__ = "`lessc` could not found on the system path.  Please \
 ensure that you've properly installed the LESS compiler (http://lesscss.org/)."
 
-def _executable(less):
+def _executable(less): #pragma: no cover
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
@@ -87,7 +87,7 @@ class Less(object):
                 # that it exists and is executable on the path somewhere)
                 #
                 if not _executable(self.lessc):
-                    raise RuntimeError, __LESS_MISSING__
+                    raise RuntimeError, __LESS_MISSING__ #pragma: no cover
 
                 print 'Compiling %s to %s' % (source, destination)
                 args = [self.lessc, source]
