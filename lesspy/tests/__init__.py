@@ -213,6 +213,7 @@ class TestLess(unittest.TestCase):
             st = os.stat(fname)
             os.utime(fname, (st.st_atime, st.st_mtime + (5)))
             if platform.system() == 'Windows': # pragma: no cover
+                import time
                 time.sleep(3) # give (ahem) certain OS's a chance to catch up
 
         written_files = Less(self.source, self.destination).compile([
