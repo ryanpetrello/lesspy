@@ -1,3 +1,5 @@
+**THIS PROJECT IS UNMAINTAINED. Check out https://pypi.python.org/pypi/lesscpy, a pure-Python less compiler**
+
 lesspy
 ======
 Helps compile collections of LESS files into CSS files
