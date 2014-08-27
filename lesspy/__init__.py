@@ -94,7 +94,7 @@ class Less(object):
             if self.compress:
                 args.append('-x')
 
-            p = subprocess.Popen(args, stdout=subprocess.PIPE)
+            p = subprocess.Popen(args, stdout=subprocess.PIPE, shell = True)
             out, err = p.communicate()
 
         try:
